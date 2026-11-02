@@ -3,7 +3,8 @@
 //! Port of the QGIS plugin in github.com/LucasDaniel28/Strahler3.0 (originally by Alexandre
 //! Delahaye). The **Strahler Order** tool reads a line layer and returns a new layer whose
 //! segments carry their order in a field. The outlet is the free end of the root segment, given
-//! as `lon,lat` in degrees (RustGIS gives features in WGS 84); the walk goes upstream from there.
+//! as `lat,lon` in degrees (the RustGIS standard; features are in WGS 84); the walk goes upstream
+//! from there.
 //!
 //! The tool gets only the selected features when a layer has a selection, so clear the selection
 //! before running it.
@@ -75,11 +76,12 @@ fn endpoints(feature: &Value) -> Option<[strahler::Key; 2]> {
     Some([vertex(coords.first()?)?, vertex(coords.last()?)?])
 }
 
-/// Reads an outlet written as `x,y`: longitude and latitude in degrees, as RustGIS gives features.
+/// Reads an outlet written as `latitude,longitude` (the RustGIS standard), returned as `(x, y)`
+/// = `(longitude, latitude)` in degrees, the order of the features' coordinates.
 fn parse_outlet(text: &str) -> Result<(f64, f64), String> {
-    let (x, y) = text.split_once(',').ok_or("'outlet' must be written as longitude,latitude")?;
+    let (lat, lon) = text.split_once(',').ok_or("'outlet' must be written as latitude,longitude")?;
     let parse = |s: &str| s.trim().parse::<f64>().map_err(|_| format!("'outlet' has an invalid number: {s}"));
-    Ok((parse(x)?, parse(y)?))
+    Ok((parse(lon)?, parse(lat)?))
 }
 
 #[cfg(test)]
@@ -88,7 +90,7 @@ mod tests {
 
     #[test]
     fn reads_an_outlet() {
-        assert_eq!(parse_outlet("-1.5, 2"), Ok((-1.5, 2.0)));
+        assert_eq!(parse_outlet("2, -1.5"), Ok((-1.5, 2.0)));
         assert!(parse_outlet("12").is_err());
         assert!(parse_outlet("a,2").is_err());
     }

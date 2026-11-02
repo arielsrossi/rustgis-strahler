@@ -1,7 +1,7 @@
 {
   "id": "strahler",
   "name": "Strahler",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Strahler stream order of a line network, from its topology. Adaptação do plugin QGIS Strahler (LucasDaniel28/Strahler3.0) para o RustGIS.",
   "author": "Alexandre Delahaye (original QGIS plugin); RustGIS port adapted from LucasDaniel28/Strahler3.0",
   "homepage": "https://github.com/LucasDaniel28/Strahler3.0",
@@ -18,7 +18,7 @@
       "toolbox": "Strahler",
       "params": [
         { "name": "input", "label": "Line layer", "kind": "vectorLayer", "required": true },
-        { "name": "outlet", "label": "Outlet (longitude,latitude of the root's free end)", "kind": "text", "required": true, "help": "Longitude and latitude in degrees (WGS 84), written as lon,lat. It must be a free end: a point where the river meets nothing else." },
+        { "name": "outlet", "label": "Outlet (latitude,longitude of the root's free end)", "kind": "text", "required": true, "help": "Latitude and longitude in degrees (WGS 84), written as lat,lon. It must be a free end: a point where the river meets nothing else." },
         { "name": "tolerance", "label": "Snap tolerance (degrees)", "kind": "number", "default": 0.0001, "help": "The outlet snaps to the nearest segment end within this distance. 0.0001 degrees is about 11 m." },
         { "name": "field", "label": "Output field", "kind": "text", "default": "strahler" }
       ]

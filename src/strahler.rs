@@ -68,7 +68,7 @@ fn coords(key: Key) -> (f64, f64) {
     (f64::from_bits(key.0), f64::from_bits(key.1))
 }
 
-/// The free end (touched by one segment only) nearest to `(x, y)`, described as `x,y`.
+/// The free end (touched by one segment only) nearest to `(x, y)`, described as `lat,lon`.
 fn nearest_free_end(at: &HashMap<Key, Vec<usize>>, x: f64, y: f64) -> String {
     let nearest = at
         .iter()
@@ -81,7 +81,7 @@ fn nearest_free_end(at: &HashMap<Key, Vec<usize>>, x: f64, y: f64) -> String {
     match nearest {
         Some((_, key)) => {
             let (kx, ky) = coords(key);
-            format!("{kx},{ky}")
+            format!("{ky},{kx}")
         }
         None => "none (every segment end is joined)".into(),
     }
