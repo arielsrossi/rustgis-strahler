@@ -1,0 +1,7 @@
+{"type":"FeatureCollection","features":[
+{"type":"Feature","properties":{"nome":"tronco"},"geometry":{"type":"LineString","coordinates":[[0,0],[0,1]]}},
+{"type":"Feature","properties":{"nome":"afluente_a"},"geometry":{"type":"LineString","coordinates":[[0,1],[-1,2]]}},
+{"type":"Feature","properties":{"nome":"afluente_b"},"geometry":{"type":"LineString","coordinates":[[0,1],[1,2]]}},
+{"type":"Feature","properties":{"nome":"cabeceira_a1"},"geometry":{"type":"LineString","coordinates":[[-1,2],[-2,3]]}},
+{"type":"Feature","properties":{"nome":"cabeceira_a2"},"geometry":{"type":"LineString","coordinates":[[-1,2],[0,3]]}}
+]}
