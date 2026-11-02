@@ -1,6 +1,6 @@
 # Strahler para RustGIS
 
-Plugin WebAssembly para o RustGIS que calcula a **ordem de Strahler** dos segmentos de uma rede linear, a partir da topologia (sem MDE). É um port do plugin QGIS [LucasDaniel28/Strahler3.0](https://github.com/LucasDaniel28/Strahler3.0), que por sua vez adapta o trabalho original de Alexandre Delahaye.
+Plugin WebAssembly para o RustGIS que calcula a **ordem de Strahler** dos segmentos de uma rede linear, a partir da topologia (sem MDE). Adaptação para o RustGIS, feita por arielsrossi, do plugin QGIS [Strahler](https://github.com/LucasDaniel28/Strahler3.0), que por sua vez adapta o trabalho original de Alexandre Delahaye.
 
 ## Ferramenta
 
@@ -35,10 +35,10 @@ cargo test                                   # testes do algoritmo (ver nota aba
 cargo build --release --target wasm32-unknown-unknown
 ```
 
-Depois copie `target/wasm32-unknown-unknown/release/strahler.wasm` para `plugin.wasm` ao lado de `plugin.json` e compacte os dois em `strahler-0.2.1.rgplugin`.
+Depois copie `target/wasm32-unknown-unknown/release/strahler.wasm` para `plugin.wasm` ao lado de `plugin.json` e compacte os dois em `strahler-0.2.2.rgplugin`.
 
 Nota: no Windows, `cargo test` do crate pode falhar no link porque o SDK declara os imports do host. A lógica do algoritmo (`src/strahler.rs`) não depende do SDK e pode ser testada sozinha com `rustc --edition 2024 --test src/strahler.rs`.
 
 ## Licença
 
-GPL-2.0-or-later, como o plugin original. Créditos a Alexandre Delahaye e a LucasDaniel28.
+GPL-2.0-or-later, como o plugin original. Créditos ao plugin original de Alexandre Delahaye, adaptado no Strahler3.0 por LucasDaniel28, e à adaptação para o RustGIS, por arielsrossi.

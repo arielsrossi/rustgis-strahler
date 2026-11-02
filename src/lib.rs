@@ -1,6 +1,6 @@
 //! Strahler: the Strahler order of each segment of a line network.
 //!
-//! Port of the QGIS plugin in github.com/LucasDaniel28/Strahler3.0 (originally by Alexandre
+//! Port of the QGIS plugin github.com/LucasDaniel28/Strahler3.0 (originally by Alexandre
 //! Delahaye). The **Strahler Order** tool reads a line layer and returns a new layer whose
 //! segments carry their order in a field. The outlet is the free end of the root segment, given
 //! as `lat,lon` in degrees (the RustGIS standard; features are in WGS 84); the walk goes upstream
@@ -16,6 +16,7 @@ use rustgis_plugin::{Kind, Request, ToolOutput, Value, geojson, json};
 fn handle(req: Request) -> Result<Value, String> {
     match (req.kind, req.id.as_str()) {
         (Kind::Tool, "strahler-order") => strahler_order(&req),
+        (Kind::Tool, "strahler-help") => strahler_help(),
         (_, other) => Err(format!("Strahler has no '{other}'")),
     }
 }
@@ -58,6 +59,23 @@ fn strahler_order(req: &Request) -> Result<Value, String> {
         .layer(name.trim(), geojson::collection(out))
         .message(format!("{numbered} segments ordered; highest Strahler order {highest}."))
         .into())
+}
+
+/// A table with the steps for using Strahler Order, for the **Help** tool.
+fn strahler_help() -> Result<Value, String> {
+    let steps = [
+        ("1", "Clear the layer's selection (Select > None). With a selection, only the selected segments are used."),
+        ("2", "Find the free end of the root segment (the outlet) on the map: the end where the river meets nothing else."),
+        ("3", "Enter its coordinates in Outlet as latitude,longitude, for example -14.819737,-56.309678."),
+        ("4", "The outlet must be within the snap tolerance (default 0.0001 degrees, about 11 m) of a free end."),
+        ("5", "If the point is a junction or too far away, the error names the nearest free end. Copy it into Outlet."),
+        ("6", "Run. The result is a new layer whose segments carry the order in the strahler field."),
+    ];
+    let rows: Vec<Value> = steps
+        .iter()
+        .map(|(step, text)| geojson::feature(Value::Null, json!({"step": step, "instruction": text})))
+        .collect();
+    Ok(ToolOutput::new().table("Strahler help", geojson::collection(rows)).into())
 }
 
 /// The first and last vertex of a single line: a `LineString`, or a `MultiLineString` with one
