@@ -1,9 +1,9 @@
 {
   "id": "strahler",
   "name": "Strahler",
-  "version": "0.2.2",
-  "description": "Strahler stream order of a line network, from its topology. Adaptação do plugin QGIS Strahler (LucasDaniel28/Strahler3.0) para o RustGIS.",
-  "author": "arielsrossi (RustGIS port); original QGIS plugin by Alexandre Delahaye",
+  "version": "2.2.1",
+  "description": "Strahler stream order of a line network, from its topology. Adaptation of the QGIS Strahler3.0 plugin for RustGIS.",
+  "author": "Ariel S. Rossi (RustGIS port); original QGIS plugin by Alexandre Delahaye",
   "homepage": "https://github.com/arielsrossi/rustgis-strahler",
   "license": "GPL-2.0-or-later",
   "entry": "plugin.wasm",
