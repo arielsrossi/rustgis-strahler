@@ -1,7 +1,7 @@
 {
   "id": "strahler",
   "name": "Strahler",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Strahler stream order of a line network, from its topology. Adaptation of the QGIS Strahler3.0 plugin for RustGIS.",
   "author": "Ariel S. Rossi (RustGIS port); original QGIS plugin by Alexandre Delahaye",
   "homepage": "https://github.com/arielsrossi/rustgis-strahler",
@@ -9,7 +9,15 @@
   "entry": "plugin.wasm",
   "abi": 1,
   "minRustgisVersion": "0.3.0",
-  "permissions": [],
+  "permissions": ["edit"],
+  "commands": [
+    {
+      "id": "style-strahler",
+      "label": "Color\nStrahler Orders",
+      "help": "Colors each Strahler order of a layer: one class per order, in the colors given.",
+      "params": "{\"layer\": \"layer name (optional: by default the active layer with an Order_Strahler field)\", \"color\": \"#RRGGBB list, comma separated (optional)\"}"
+    }
+  ],
   "tools": [
     {
       "id": "strahler-help",
@@ -26,8 +34,7 @@
       "params": [
         { "name": "input", "label": "Line layer", "kind": "vectorLayer", "required": true },
         { "name": "outlet", "label": "Outlet (latitude,longitude of the root's free end)", "kind": "text", "required": true, "help": "Latitude and longitude in degrees (WGS 84), written as lat,lon. It must be a free end: a point where the river meets nothing else." },
-        { "name": "tolerance", "label": "Snap tolerance (degrees)", "kind": "number", "default": 0.0001, "help": "The outlet snaps to the nearest segment end within this distance. 0.0001 degrees is about 11 m." },
-        { "name": "field", "label": "Output field", "kind": "text", "default": "strahler" }
+        { "name": "tolerance", "label": "Snap tolerance (degrees)", "kind": "number", "default": 0.0001, "help": "The outlet snaps to the nearest segment end within this distance. 0.0001 degrees is about 11 m." }
       ]
     }
   ]

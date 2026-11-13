@@ -10,24 +10,82 @@
 //! before running it.
 
 mod strahler;
+mod style;
 
-use rustgis_plugin::{Kind, Request, ToolOutput, Value, geojson, json};
+/// The attribute that holds each segment's Strahler order, in the output and the styled layer.
+const FIELD: &str = "Order_Strahler";
+
+use rustgis_plugin::{Kind, Request, ToolOutput, Value, geojson, host, json};
 
 fn handle(req: Request) -> Result<Value, String> {
     match (req.kind, req.id.as_str()) {
         (Kind::Tool, "strahler-order") => strahler_order(&req),
         (Kind::Tool, "strahler-help") => strahler_help(),
+        (Kind::Command, "style-strahler") => style_strahler(&req),
         (_, other) => Err(format!("Strahler has no '{other}'")),
     }
 }
 
 rustgis_plugin::export!(handle);
 
+/// Colors a layer's Strahler classes: one graduated class per order, each in its color.
+/// The layer is the one named by `layer`, or else the active layer with a `strahler` field (the
+/// last such layer when none is active). The ribbon button sends no parameters.
+fn style_strahler(req: &Request) -> Result<Value, String> {
+    let layer = match req.str("layer").filter(|l| !l.is_empty()) {
+        Some(name) => name.to_string(),
+        None => strahler_layer()?,
+    };
+    let colors = style::parse_colors(req.str("color").unwrap_or(""))?;
+
+    let collection = host::features(&layer, false)?;
+    let features = collection["features"].as_array().or(collection.as_array()).ok_or("RustGIS sent no features")?;
+    let orders = style::distinct_orders(features.iter().filter_map(|f| f["properties"][FIELD].as_u64()));
+    if orders.is_empty() {
+        return Err(format!("'{layer}' has no {FIELD} values. Run Strahler Order first."));
+    }
+    if orders.len() > style::MAX_CLASSES {
+        return Err(format!("'{layer}' has {} orders; at most {} classes are supported.", orders.len(), style::MAX_CLASSES));
+    }
+
+    host::run(
+        "layer.symbology",
+        json!({
+            "layer": layer,
+            "type": "graduated",
+            "field": FIELD,
+            "method": "manual",
+            "classes": orders.len(),
+            "breaks": style::breaks(&orders),
+        }),
+    )?;
+    for (index, order) in orders.iter().enumerate() {
+        host::run(
+            "layer.classStyle",
+            json!({
+                "layer": layer,
+                "index": index,
+                "color": style::color_for(index, &colors),
+                "label": format!("Order {order}"),
+            }),
+        )?;
+        host::run(
+            "layer.lineStrokes",
+            json!({
+                "layer": layer,
+                "index": index,
+                "strokes": [{"color": null, "width": style::width_for(*order)}],
+            }),
+        )?;
+    }
+    host::notify(&format!("{layer}: {} Strahler classes colored.", orders.len()));
+    Ok(json!({"layer": layer, "classes": orders.len()}))
+}
+
 fn strahler_order(req: &Request) -> Result<Value, String> {
     let features = req.features("input")?;
     let (x, y) = parse_outlet(req.str("outlet").ok_or("'outlet' is required")?)?;
     let tolerance = req.f64("tolerance").unwrap_or(0.0001);
-    let field = req.str("field").filter(|f| !f.is_empty()).unwrap_or("strahler");
 
     let lines: Vec<Option<[strahler::Key; 2]>> = features.iter().map(endpoints).collect();
     if lines.iter().all(Option::is_none) {
@@ -48,7 +106,7 @@ fn strahler_order(req: &Request) -> Result<Value, String> {
             let mut properties = f["properties"].clone();
             let value = order.map_or(Value::Null, |o| json!(o));
             highest = highest.max(order.unwrap_or(0));
-            properties[field] = value;
+            properties[FIELD] = value;
             geojson::feature(f["geometry"].clone(), properties)
         })
         .collect();
@@ -61,6 +119,25 @@ fn strahler_order(req: &Request) -> Result<Value, String> {
         .into())
 }
 
+/// The layer to color: the active layer (the one selected in the Layers pane), which must have a
+/// `strahler` field. With no active layer, the last layer that has one.
+fn strahler_layer() -> Result<String, String> {
+    let layers = host::layers()?;
+    let all = layers.as_array().ok_or("RustGIS sent no layers")?;
+    let has_field = |l: &Value| l["fields"].as_array().is_some_and(|fs| fs.iter().any(|f| f["name"] == FIELD));
+    let name = |l: &Value| l["name"].as_str().map(str::to_string).ok_or("A layer has no name.");
+    if let Some(active) = all.iter().find(|l| l["active"] == true) {
+        let name = name(active)?;
+        return if has_field(active) {
+            Ok(name)
+        } else {
+            Err(format!("'{name}' has no {FIELD} field. Select the Strahler layer in the Layers pane, then run again."))
+        };
+    }
+    let last = all.iter().filter(|l| has_field(l)).last().ok_or("No layer has an Order_Strahler field. Run Strahler Order first.")?;
+    name(last).map_err(Into::into)
+}
+
 /// A table with the steps for using Strahler Order, for the **Help** tool.
 fn strahler_help() -> Result<Value, String> {
     let steps = [
@@ -69,7 +146,7 @@ fn strahler_help() -> Result<Value, String> {
         ("3", "Enter its coordinates in Outlet as latitude,longitude, for example -14.819737,-56.309678."),
         ("4", "The outlet must be within the snap tolerance (default 0.0001 degrees, about 11 m) of a free end."),
         ("5", "If the point is a junction or too far away, the error names the nearest free end. Copy it into Outlet."),
-        ("6", "Run. The result is a new layer whose segments carry the order in the strahler field."),
+        ("6", "Run. The result is a new layer whose segments carry the order in the Order_Strahler field."),
     ];
     let rows: Vec<Value> = steps
         .iter()
