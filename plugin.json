@@ -1,7 +1,7 @@
 {
   "id": "strahler",
   "name": "Strahler",
-  "version": "2.2.1",
+  "version": "0.2.3",
   "description": "Strahler stream order of a line network, from its topology. Adaptation of the QGIS Strahler3.0 plugin for RustGIS.",
   "author": "Ariel S. Rossi (RustGIS port); original QGIS plugin by Alexandre Delahaye",
   "homepage": "https://github.com/arielsrossi/rustgis-strahler",
